@@ -44,8 +44,34 @@ def get_recipes_link_by_book(book):
     return recipes_link
 
 
+# Get recipe by link
 
-recipe_books = get_recipe_books('http://www.recetags.com/recetarios')
+def get_recipe_by_link(link):
+    recipe = {}
+    page = open_url(link)
+    soup = BeautifulSoup(page, 'html.parser')
+    div_recipe = soup.find(attrs={'class': 'inforecetacont'})
 
-for recipe_book in recipe_books:
-    print(get_recipes_link_by_book(recipe_book))
+    recipe_title = div_recipe.find(attrs={'class': 'tituloreceta'}).find('h1').text
+    image_url = div_recipe.find(attrs={'class': 'carousel'}).find('div').find('div').find('img').get('src')
+    cook_url = div_recipe.find(attrs={'class': 'tituloing'}).find('a').get('href')
+    div_ingredients = div_recipe.find(attrs={'class': 'boxinfoing'}).find('div').find('ul').find_all('li')
+    div_tags = div_recipe.find(attrs={'class': 'tagsReceta'}).find('ul').find_all('li')
+
+    tags = []
+    ingredients = []
+
+    for tag in div_tags:
+        tags.append(tag.find('a').text)
+
+    for ingredient in div_ingredients:
+        ingredients.append(ingredient.text)
+
+    recipe['title'] = recipe_title
+    recipe['image'] = image_url
+    recipe['ingredients'] = ingredients
+    recipe['tags'] = tags
+    recipe['cook_url'] = cook_url
+
+    return recipe
+
