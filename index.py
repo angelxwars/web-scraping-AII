@@ -1,5 +1,6 @@
 from urllib import request
 from bs4 import BeautifulSoup
+import filter
 
 
 # open any url
@@ -52,10 +53,15 @@ def get_recipe_by_link(link):
     soup = BeautifulSoup(page, 'html.parser')
     div_recipe = soup.find(attrs={'class': 'inforecetacont'})
 
+
     recipe_title = div_recipe.find(attrs={'class': 'tituloreceta'}).find('h1').text
     image_url = div_recipe.find(attrs={'class': 'carousel'}).find('div').find('div').find('img').get('src')
     cook_url = div_recipe.find(attrs={'class': 'tituloing'}).find('a').get('href')
-    div_ingredients = div_recipe.find(attrs={'class': 'boxinfoing'}).find('div').find('ul').find_all('li')
+    div_ingredients = div_recipe.find(attrs={'class': 'boxinfoing'}).find('div')
+    ul_ingredients = div_ingredients.find('ul')
+    li_ingredients = []
+    if ul_ingredients is not None:
+        li_ingredients = ul_ingredients.find_all('li')
     div_tags = div_recipe.find(attrs={'class': 'tagsReceta'}).find('ul').find_all('li')
 
     tags = []
@@ -64,8 +70,8 @@ def get_recipe_by_link(link):
     for tag in div_tags:
         tags.append(tag.find('a').text)
 
-    for ingredient in div_ingredients:
-        ingredients.append(ingredient.text)
+    for ingredient in li_ingredients:
+        ingredients.append(ingredient.text.replace('-', ' ').strip())
 
     recipe['title'] = recipe_title
     recipe['image'] = image_url
@@ -75,3 +81,25 @@ def get_recipe_by_link(link):
 
     return recipe
 
+
+def get_information(url):
+    recipe_books = get_recipe_books('http://www.recetags.com/recetarios')
+    recipe_links = []
+    recipes = []
+    cont = 0
+    for recipe_book in recipe_books:
+        print(get_recipes_link_by_book(recipe_book))
+        recipe_links = recipe_links + get_recipes_link_by_book(recipe_book)
+        for recipe_link in get_recipes_link_by_book(recipe_book):
+            print(get_recipe_by_link(recipe_link))
+            recipes.append(get_recipe_by_link(recipe_link))
+            cont += 1
+
+
+    print(cont, " recetas")
+
+
+
+
+
+get_information('http://www.recetags.com/recetarios')
